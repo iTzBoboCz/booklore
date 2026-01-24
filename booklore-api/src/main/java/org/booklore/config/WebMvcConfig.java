@@ -1,6 +1,7 @@
 package org.booklore.config;
 
 import lombok.RequiredArgsConstructor;
+import org.booklore.interceptor.BookdropEnabledInterceptor;
 import org.booklore.interceptor.KomgaCleanInterceptor;
 import org.booklore.interceptor.KomgaEnabledInterceptor;
 import org.booklore.interceptor.OpdsEnabledInterceptor;
@@ -24,6 +25,7 @@ import static org.springframework.data.web.config.EnableSpringDataWebSupport.Pag
 @RequiredArgsConstructor
 public class WebMvcConfig implements WebMvcConfigurer {
 
+    private final BookdropEnabledInterceptor bookdropEnabledInterceptor;
     private final OpdsEnabledInterceptor opdsEnabledInterceptor;
     private final KomgaEnabledInterceptor komgaEnabledInterceptor;
     private final KomgaCleanInterceptor komgaCleanInterceptor;
@@ -51,6 +53,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(bookdropEnabledInterceptor)
+                .addPathPatterns("/api/v1/bookdrop/**", "/api/v1/files/upload/bookdrop");
         registry.addInterceptor(opdsEnabledInterceptor)
                 .addPathPatterns("/api/v1/opds/**", "/api/v2/opds/**");
         registry.addInterceptor(komgaEnabledInterceptor)

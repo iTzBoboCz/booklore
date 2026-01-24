@@ -30,7 +30,7 @@ public class BookdropMonitoringService {
     private volatile boolean running;
     private WatchKey watchKey;
     private volatile boolean paused;
-    private volatile boolean disabled;
+    private volatile boolean bookdropEnabled = true;
 
     public BookdropMonitoringService(
             AppProperties appProperties,
@@ -52,7 +52,7 @@ public class BookdropMonitoringService {
             } catch (IOException e) {
                 log.warn("Bookdrop folder is not available at '{}'. Bookdrop monitoring is disabled. " +
                         "Mount a volume at this path to enable it.", bookdrop);
-                this.disabled = true;
+                this.bookdropEnabled = false;
                 return;
             }
         }
@@ -71,7 +71,7 @@ public class BookdropMonitoringService {
             scanExistingBookdropFiles();
         } catch (IOException e) {
             log.warn("Failed to start bookdrop folder monitor. Bookdrop monitoring is disabled.", e);
-            this.disabled = true;
+            this.bookdropEnabled = false;
         }
     }
 
@@ -91,8 +91,15 @@ public class BookdropMonitoringService {
         log.info("Stopped bookdrop folder monitor");
     }
 
+    public boolean isBookdropEnabled() {
+        return this.bookdropEnabled;
+    }
+
     public synchronized void pauseMonitoring() {
-        if (disabled) return;
+        if (!bookdropEnabled) {
+            log.warn("Bookdrop is disabled, cannot pause monitoring.");
+            return;
+        }
         if (!paused) {
             if (watchKey != null) {
                 watchKey.cancel();
@@ -106,7 +113,10 @@ public class BookdropMonitoringService {
     }
 
     public synchronized void resumeMonitoring() {
-        if (disabled) return;
+        if (!bookdropEnabled) {
+            log.warn("Bookdrop is disabled, cannot resume monitoring.");
+            return;
+        }
         if (paused) {
             try {
                 watchKey = bookdrop.register(watchService,
@@ -200,8 +210,8 @@ public class BookdropMonitoringService {
     }
 
     public void rescanBookdropFolder() {
-        if (disabled) {
-            log.warn("Bookdrop monitoring is disabled. Skipping rescan.");
+        if (!bookdropEnabled) {
+            log.warn("Bookdrop is disabled, cannot rescan folder.");
             return;
         }
         log.info("Rescan of Bookdrop folder triggered.");

@@ -1,5 +1,4 @@
 package org.booklore.service.upload;
-
 import lombok.RequiredArgsConstructor;
 import org.booklore.config.AppProperties;
 import org.booklore.exception.ApiError;
@@ -18,6 +17,7 @@ import org.booklore.repository.BookRepository;
 import org.booklore.repository.LibraryRepository;
 import org.booklore.service.file.FileFingerprint;
 import org.booklore.service.appsettings.AppSettingService;
+import org.booklore.service.bookdrop.BookdropMonitoringService;
 import org.booklore.service.file.FileMovingHelper;
 import org.booklore.service.monitoring.MonitoringRegistrationService;
 import org.booklore.service.metadata.extractor.MetadataExtractorFactory;
@@ -51,6 +51,7 @@ public class FileUploadService {
     private final LibraryRepository libraryRepository;
     private final BookRepository bookRepository;
     private final BookAdditionalFileRepository additionalFileRepository;
+    private final BookdropMonitoringService bookdropMonitoringService;
     private final AppSettingService appSettingService;
     private final AppProperties appProperties;
     private final MetadataExtractorFactory metadataExtractorFactory;
@@ -217,6 +218,10 @@ public class FileUploadService {
     }
 
     public Book uploadFileBookDrop(MultipartFile file) throws IOException {
+        if (!bookdropMonitoringService.isBookdropEnabled()) {
+            throw ApiError.BOOKDROP_DISABLED.createException();
+        }
+
         validateFile(file);
 
         final Path dropFolder = Paths.get(appProperties.getBookdropFolder());

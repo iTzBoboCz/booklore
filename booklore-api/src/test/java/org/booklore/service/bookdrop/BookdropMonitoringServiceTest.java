@@ -2,6 +2,7 @@ package org.booklore.service.bookdrop;
 
 import org.booklore.config.AppProperties;
 import org.booklore.repository.BookdropFileRepository;
+import org.booklore.service.bookdrop.BookdropMonitoringService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
